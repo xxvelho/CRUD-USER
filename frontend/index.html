@@ -1,49 +1,522 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title>Usuários CRUD</title>
     <style>
-        body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
-        li { margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
-        li button { margin-left: 10px; }
-        #name { margin-right: 5px; }
-        h1, h2 { color: #333; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            border-bottom: 2px solid #e3f2fd;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 12px 16px;
+            border: 2px solid #e3f2fd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            width: 200px;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #users-list {
+            list-style: none;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+            border-radius: 10px;
+            background: #f8f9ff;
+            padding: 15px;
+        }
+
+        #users-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #users-list::-webkit-scrollbar-track {
+            background: #e3f2fd;
+            border-radius: 10px;
+        }
+
+        #users-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+        }
+
+        #users-list::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a6fd8, #6a4190);
+        }
+
+        #users-list li {
+            background: white;
+            margin-bottom: 12px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #users-list li:hover {
+            background: #e8f2ff;
+            transform: translateX(5px);
+        }
+
+        #users-list li span {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .update-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .draw-btn {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            font-size: 18px;
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(243, 156, 18, 0.3);
+        }
+
+        .draw-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(243, 156, 18, 0.4);
+        }
+
+        .draw-result {
+            margin-top: 20px;
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s ease;
+        }
+
+        .draw-result.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .draw-result.winner {
+            background: linear-gradient(135deg, #00d4aa, #00b894, #00a085);
+            animation: winnerPulse 2s ease-in-out;
+            box-shadow: 0 15px 35px rgba(0, 212, 170, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes winnerPulse {
+            0%, 100% { 
+                transform: scale(1); 
+                box-shadow: 0 15px 35px rgba(0, 212, 170, 0.4);
+            }
+            50% { 
+                transform: scale(1.05); 
+                box-shadow: 0 20px 45px rgba(0, 212, 170, 0.6);
+            }
+        }
+
+        #user-name-lookup-result {
+            margin-top: 15px;
+        }
+
+        .search-results {
+            background: #e8f2ff;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            font-weight: 500;
+        }
+
+        .search-results h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .search-results ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .search-results li {
+            background: white;
+            margin-bottom: 8px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-results li:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .search-results .user-info {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .search-results .user-details {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #e74c3c;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .users-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .users-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e3f2fd;
+            padding-bottom: 15px;
+        }
+
+        .tab-btn {
+            background: #f8f9ff;
+            color: #667eea;
+            border: 2px solid transparent;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .tab-btn:hover {
+            background: #e8f2ff;
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .search-container {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .add-container {
+            background: #f0f8ff;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #27ae60;
+        }
+
+        .add-container h3, .search-container h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(39, 174, 96, 0.3);
+        }
+
+        .prizes-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .prizes-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .prize-item {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .prize-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .prize-icon {
+            display: block;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .prize-name {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
-    <h1>Lista de usuários</h1>
-    <ul id="users-list"></ul>
+    <div class="container">
+        <h1>🎲 MUX SORTEADOR</h1>
+        
+        <div class="users-section">
+            <h2>👥 Pessoas Cadastradas</h2>
+            
+            <div class="users-tabs">
+                <button class="tab-btn active" onclick="showTab('list')">📋 Lista</button>
+                <button class="tab-btn" onclick="showTab('add')">➕ Cadastrar</button>
+                <button class="tab-btn" onclick="showTab('search')">🔍 Consultar</button>
+            </div>
+            
+            <div id="list-tab" class="tab-content active">
+                <ul id="users-list"></ul>
+            </div>
+            
+            <div id="add-tab" class="tab-content">
+                <div class="add-container">
+                    <h3>➕ Cadastrar Nova Pessoa</h3>
+                    <div class="form-group">
+                        <input type="text" id="name" placeholder="Nome do usuário">
+                        <input type="number" id="age" placeholder="Idade" min="1" max="120">
+                        <input type="text" id="cpf" placeholder="CPF (000.000.000-00)" maxlength="14">
+                        <button onclick="addUser()" class="add-btn">➕ Adicionar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="search-tab" class="tab-content">
+                <div class="search-container">
+                    <h3>🔍 Consultar Pessoa</h3>
+                    <div class="form-group">
+                        <input type="text" id="user-name-lookup" placeholder="Nome do usuário">
+                        <button onclick="getUserByName()">🔍 Consultar</button>
+                    </div>
+                    <div id="user-name-lookup-result"></div>
+                </div>
+            </div>
+        </div>
 
-    <h2>Adicionar usuário</h2>
-    <input type="text" id="name" placeholder="Nome">
-    <button onclick="addUser()">Adicionar</button>
+        <h2>🏆 Prêmios Disponíveis</h2>
+        <div class="prizes-section">
+            <div class="prizes-list">
+                <div class="prize-item">
+                    <span class="prize-icon">🚗</span>
+                    <span class="prize-name">Fusca Azul</span>
+                </div>
+                <div class="prize-item">
+                    <span class="prize-icon">🎮</span>
+                    <span class="prize-name">PlayStation 2</span>
+                </div>
+                <div class="prize-item">
+                    <span class="prize-icon">⚽</span>
+                    <span class="prize-name">Camisa do Flamengo</span>
+                </div>
+                <div class="prize-item">
+                    <span class="prize-icon">☁️</span>
+                    <span class="prize-name">1 Ano Grátis AWS</span>
+                </div>
+                <div class="prize-item">
+                    <span class="prize-icon">🧴</span>
+                    <span class="prize-name">Perfume Malbec</span>
+                </div>
+                <div class="prize-item">
+                    <span class="prize-icon">👶</span>
+                    <span class="prize-name">Bebê Reborn</span>
+                </div>
+            </div>
+        </div>
 
-    <h2>Consultar usuário por ID</h2>
-    <input type="number" id="user-id-lookup" placeholder="ID do usuário">
-    <button onclick="getUserById()">Consultar</button>
-    <p id="user-lookup-result"></p>
+        <h2>🎲 Sortear Pessoa</h2>
+        <div class="form-group">
+            <button onclick="drawPerson()" class="draw-btn">🎯 Sortear</button>
+        </div>
+        <div id="draw-result" class="draw-result"></div>
+    </div>
 
     <script>
         const API_URL = 'http://127.0.0.1:5000/users';
+        let users = [];
 
         function loadUsers() {
             fetch(API_URL)
                 .then(res => res.json())
                 .then(data => {
+                    users = data;
                     const list = document.getElementById('users-list');
                     list.innerHTML = '';
-                    data.forEach(user => {
+                    
+                    if (users.length === 0) {
+                        list.innerHTML = `
+                            <li style="text-align: center; color: #7f8c8d; font-style: italic; background: transparent; box-shadow: none; border-left: none;">
+                                📝 Nenhuma pessoa cadastrada ainda. Adicione pessoas para começar!
+                            </li>
+                        `;
+                        return;
+                    }
+                    
+                    users.forEach(user => {
                         const li = document.createElement('li');
-                        li.innerHTML = `<span>${user.id}: ${user.name}</span>`;
+                        li.innerHTML = `<span>${user.id}: ${user.name} - ${user.age} anos - CPF: ${user.cpf}</span>`;
 
                         const buttonsDiv = document.createElement('div');
+                        buttonsDiv.className = 'button-group';
+                        
                         const updateButton = document.createElement('button');
                         updateButton.textContent = 'Atualizar';
-                        updateButton.onclick = () => updateUser(user.id, user.name);
+                        updateButton.className = 'update-btn';
+                        updateButton.onclick = () => updateUser(user.id, user.name, user.age, user.cpf);
 
                         const deleteButton = document.createElement('button');
                         deleteButton.textContent = 'Deletar';
+                        deleteButton.className = 'delete-btn';
                         deleteButton.onclick = () => deleteUser(user.id);
 
                         buttonsDiv.appendChild(updateButton);
@@ -51,69 +524,277 @@
                         li.appendChild(buttonsDiv);
                         list.appendChild(li);
                     });
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar usuários:', error);
+                    const list = document.getElementById('users-list');
+                    list.innerHTML = `
+                        <li style="text-align: center; color: #e74c3c; font-style: italic; background: transparent; box-shadow: none; border-left: none;">
+                            ❌ Verifique se o servidor está rodando.
+                        </li>
+                    `;
                 });
         }
 
         function addUser() {
             const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+            const cpf = document.getElementById('cpf').value;
+            
             if (!name || !name.trim()) {
                 alert('O nome não pode estar vazio.');
                 return;
             }
+            if (!age || age < 1 || age > 120) {
+                alert('A idade deve estar entre 1 e 120 anos.');
+                return;
+            }
+            if (!cpf || !cpf.trim()) {
+                alert('O CPF não pode estar vazio.');
+                return;
+            }
+            
             fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name })
-            }).then(res => {
+                body: JSON.stringify({ name: name.trim(), age: parseInt(age), cpf: cpf.trim() })
+            })
+            .then(res => {
                 if (res.ok) {
+                    // Limpar campos
                     document.getElementById('name').value = '';
+                    document.getElementById('age').value = '';
+                    document.getElementById('cpf').value = '';
+                    
+                    // Mostrar mensagem de sucesso
+                    alert(`✅ ${name} foi cadastrado(a) com sucesso!`);
+                    
+                    // Voltar para a aba de lista
+                    showTab('list');
                     loadUsers();
                 } else {
-                    alert('Falha ao adicionar usuário.');
+                    return res.json().then(data => {
+                        alert(data.message || 'Falha ao adicionar usuário.');
+                    });
                 }
+            })
+            .catch(error => {
+                console.error('Erro ao adicionar usuário:', error);
+                alert('Verifique se o servidor está rodando.');
             });
         }
 
-        function updateUser(id, currentName) {
+        function updateUser(id, currentName, currentAge, currentCpf) {
             const newName = prompt('Digite o novo nome:', currentName);
-            if (newName && newName.trim()) {
-                fetch(`${API_URL}/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: newName })
-                }).then(() => loadUsers());
-            }
+            if (!newName || !newName.trim()) return;
+            
+            const newAge = prompt('Digite a nova idade:', currentAge);
+            if (!newAge || newAge < 1 || newAge > 120) return;
+            
+            const newCpf = prompt('Digite o novo CPF:', currentCpf);
+            if (!newCpf || !newCpf.trim()) return;
+            
+            fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    name: newName.trim(), 
+                    age: parseInt(newAge), 
+                    cpf: newCpf.trim() 
+                })
+            })
+            .then(res => {
+                if (res.ok) {
+                    loadUsers();
+                } else {
+                    return res.json().then(data => {
+                        alert(data.message || 'Falha ao atualizar usuário.');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao atualizar usuário:', error);
+                alert('Verifique se o servidor está rodando.');
+            });
         }
 
         function deleteUser(id) {
             if (confirm('Tem certeza que deseja deletar este usuário?')) {
                 fetch(`${API_URL}/${id}`, {
                     method: 'DELETE'
-                }).then(() => loadUsers());
+                })
+                .then(res => {
+                    if (res.ok) {
+                        loadUsers();
+                    } else {
+                        alert('Falha ao deletar usuário.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao deletar usuário:', error);
+                    alert('Verifique se o servidor está rodando.');
+                });
             }
         }
 
-        function getUserById() {
-            const userId = document.getElementById('user-id-lookup').value;
-            const resultP = document.getElementById('user-lookup-result');
+        function getUserByName() {
+            const userName = document.getElementById('user-name-lookup').value;
+            const resultDiv = document.getElementById('user-name-lookup-result');
 
-            if (!userId) {
-                resultP.textContent = 'Por favor, insira um ID.';
+            if (!userName || !userName.trim()) {
+                resultDiv.innerHTML = '<div class="search-results"><div class="no-results">Por favor, insira um nome.</div></div>';
                 return;
             }
 
-            fetch(`${API_URL}/${userId}`)
-                .then(res => {
-                    if (!res.ok) {
-                        resultP.textContent = `Erro: Usuário com ID ${userId} não encontrado.`;
-                        throw new Error('User not found');
+            fetch(API_URL)
+                .then(res => res.json())
+                .then(users => {
+                    const filteredUsers = users.filter(user => 
+                        user.name.toLowerCase().includes(userName.toLowerCase())
+                    );
+                    
+                    if (filteredUsers.length === 0) {
+                        resultDiv.innerHTML = `
+                            <div class="search-results">
+                                <div class="no-results">
+                                    🔍 Nenhum usuário encontrado com o nome "${userName}"
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        const resultsHtml = `
+                            <div class="search-results">
+                                <h3>🔍 Encontrados ${filteredUsers.length} usuário(s) com "${userName}":</h3>
+                                <ul>
+                                    ${filteredUsers.map(user => `
+                                        <li>
+                                            <div class="user-info">👤 ${user.name}</div>
+                                            <div class="user-details">
+                                                🆔 ID: ${user.id} | 🎂 Idade: ${user.age} anos | 📄 CPF: ${user.cpf}
+                                            </div>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        `;
+                        resultDiv.innerHTML = resultsHtml;
                     }
-                    return res.json();
                 })
-                .then(user => {
-                    resultP.textContent = `Resultado: ID: ${user.id}, Nome: ${user.name}`;
+                .catch(error => {
+                    console.error('Erro ao buscar usuários:', error);
+                    resultDiv.innerHTML = `
+                        <div class="search-results">
+                            <div class="no-results">
+                                ❌ Verifique se o servidor está rodando.
+                            </div>
+                        </div>
+                    `;
+                });
+        }
+
+        // Função para controlar as abas
+        function showTab(tabName) {
+            // Esconder todas as abas
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            
+            // Remover classe active de todos os botões
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(btn => btn.classList.remove('active'));
+            
+            // Mostrar aba selecionada
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Adicionar classe active ao botão clicado
+            event.target.classList.add('active');
+        }
+
+        // Função para formatar CPF automaticamente
+        document.getElementById('cpf').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+                e.target.value = value;
+            }
+        });
+
+        // Lista de prêmios disponíveis
+        const prizes = [
+            { icon: '🚗', name: 'Fusca Azul' },
+            { icon: '🎮', name: 'PlayStation 2' },
+            { icon: '⚽', name: 'Camisa do Flamengo' },
+            { icon: '☁️', name: '1 Ano Grátis AWS' },
+            { icon: '🧴', name: 'Perfume Malbec' },
+            { icon: '👶', name: 'Bebê Reborn' }
+        ];
+
+        // Função para sortear uma pessoa
+        function drawPerson() {
+            const drawResult = document.getElementById('draw-result');
+            const drawButton = document.querySelector('.draw-btn');
+            
+            // Desabilitar botão durante o sorteio
+            drawButton.disabled = true;
+            drawButton.textContent = '🎲 Sorteando...';
+            
+            fetch(API_URL)
+                .then(res => res.json())
+                .then(users => {
+                    if (users.length === 0) {
+                        drawResult.textContent = 'Nenhuma pessoa cadastrada para sortear!';
+                        drawResult.className = 'draw-result show';
+                        drawButton.disabled = false;
+                        drawButton.textContent = '🎯 Sortear';
+                        return;
+                    }
+                    
+                    // Animação de sorteio
+                    let counter = 0;
+                    const maxCount = 20;
+                    const interval = setInterval(() => {
+                        const randomUser = users[Math.floor(Math.random() * users.length)];
+                        const randomPrize = prizes[Math.floor(Math.random() * prizes.length)];
+                        drawResult.innerHTML = `
+                            <div>
+                                <div style="font-size: 18px; margin-bottom: 5px;">🎲 Sorteando...</div>
+                                <div style="font-size: 16px; margin-bottom: 3px;">👤 ${randomUser.name}</div>
+                                <div style="font-size: 14px; opacity: 0.8;">🏆 ${randomPrize.icon} ${randomPrize.name}</div>
+                            </div>
+                        `;
+                        drawResult.className = 'draw-result show';
+                        counter++;
+                        
+                        if (counter >= maxCount) {
+                            clearInterval(interval);
+                            
+                            // Resultado final
+                            const winner = users[Math.floor(Math.random() * users.length)];
+                            const wonPrize = prizes[Math.floor(Math.random() * prizes.length)];
+                            drawResult.innerHTML = `
+                                <div>
+                                    <div style="font-size: 24px; margin-bottom: 15px;">🎉 PARABÉNS! 🎉</div>
+                                    <div style="font-size: 20px; margin-bottom: 10px;">👤 ${winner.name}</div>
+                                    <div style="font-size: 16px; margin-bottom: 15px; color: #f39c12; font-weight: 600;">
+                                        🏆 GANHOU: ${wonPrize.icon} ${wonPrize.name}
+                                    </div>
+                                    <div style="font-size: 12px; opacity: 0.8;">ID: ${winner.id} | Idade: ${winner.age} | CPF: ${winner.cpf}</div>
+                                </div>
+                            `;
+                            drawResult.className = 'draw-result show winner';
+                            
+                            // Reabilitar botão
+                            drawButton.disabled = false;
+                            drawButton.textContent = '🎯 Sortear';
+                        }
+                    }, 100);
                 })
-                .catch(error => console.error('Fetch error:', error));
+                .catch(error => {
+                    console.error('Erro no sorteio:', error);
+                    drawResult.textContent = 'Verifique se o servidor está rodando.';
+                    drawResult.className = 'draw-result show';
+                    drawButton.disabled = false;
+                    drawButton.textContent = '🎯 Sortear';
+                });
         }
 
         loadUsers();
