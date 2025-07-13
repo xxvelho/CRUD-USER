@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Usuários CRUD</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+        li { margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+        li button { margin-left: 10px; }
+        #name { margin-right: 5px; }
+        h1, h2 { color: #333; }
+    </style>
+</head>
+<body>
+    <h1>Lista de usuários</h1>
+    <ul id="users-list"></ul>
+
+    <h2>Adicionar usuário</h2>
+    <input type="text" id="name" placeholder="Nome">
+    <button onclick="addUser()">Adicionar</button>
+
+    <h2>Consultar usuário por ID</h2>
+    <input type="number" id="user-id-lookup" placeholder="ID do usuário">
+    <button onclick="getUserById()">Consultar</button>
+    <p id="user-lookup-result"></p>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:5000/users';
+
+        function loadUsers() {
+            fetch(API_URL)
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById('users-list');
+                    list.innerHTML = '';
+                    data.forEach(user => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<span>${user.id}: ${user.name}</span>`;
+
+                        const buttonsDiv = document.createElement('div');
+                        const updateButton = document.createElement('button');
+                        updateButton.textContent = 'Atualizar';
+                        updateButton.onclick = () => updateUser(user.id, user.name);
+
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Deletar';
+                        deleteButton.onclick = () => deleteUser(user.id);
+
+                        buttonsDiv.appendChild(updateButton);
+                        buttonsDiv.appendChild(deleteButton);
+                        li.appendChild(buttonsDiv);
+                        list.appendChild(li);
+                    });
+                });
+        }
+
+        function addUser() {
+            const name = document.getElementById('name').value;
+            if (!name || !name.trim()) {
+                alert('O nome não pode estar vazio.');
+                return;
+            }
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            }).then(res => {
+                if (res.ok) {
+                    document.getElementById('name').value = '';
+                    loadUsers();
+                } else {
+                    alert('Falha ao adicionar usuário.');
+                }
+            });
+        }
+
+        function updateUser(id, currentName) {
+            const newName = prompt('Digite o novo nome:', currentName);
+            if (newName && newName.trim()) {
+                fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newName })
+                }).then(() => loadUsers());
+            }
+        }
+
+        function deleteUser(id) {
+            if (confirm('Tem certeza que deseja deletar este usuário?')) {
+                fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                }).then(() => loadUsers());
+            }
+        }
+
+        function getUserById() {
+            const userId = document.getElementById('user-id-lookup').value;
+            const resultP = document.getElementById('user-lookup-result');
+
+            if (!userId) {
+                resultP.textContent = 'Por favor, insira um ID.';
+                return;
+            }
+
+            fetch(`${API_URL}/${userId}`)
+                .then(res => {
+                    if (!res.ok) {
+                        resultP.textContent = `Erro: Usuário com ID ${userId} não encontrado.`;
+                        throw new Error('User not found');
+                    }
+                    return res.json();
+                })
+                .then(user => {
+                    resultP.textContent = `Resultado: ID: ${user.id}, Nome: ${user.name}`;
+                })
+                .catch(error => console.error('Fetch error:', error));
+        }
+
+        loadUsers();
+    </script>
+</body>
+</html>
